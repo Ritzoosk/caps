@@ -3,35 +3,50 @@
 const PORT = process.env.PORT || 3000;
 const io = require('socket.io')(PORT);
 
+//connect to server
 io.on('connection', socket => {
-  onsole.log('New connection created : ' + socket.id);
+  console.log('New connection created : ' + socket.id);
 });
 
 const caps = io.of('/caps');
 
-
+//connect to namespace
 caps.on('connection', socket => {
+
+  console.log('New connection in caps.on : ' + socket.id);
+
+  socket.on('join', room => {
+    console.log('room name:', room);
+    socket.join(room);
+  });
+
+    //PICKUP//
 
   socket.on('pickup', payload => {
     //log it with time
-    logger('pick up', payload);
+    logger('pickup', payload);
     //show in console
-    console.log('pick up', payload);
+    // console.log('pickup', payload);
     //broadcast
-    caps.broadcast.emit('pickup', payload)
+    caps.emit('pickup', payload)
   });
 
-  socket.on('in-transit', payload => {
-    logger('pick up', payload);
-    console.log('transit', payload);
+    //IN-TRANSIT//
 
-    caps.broadcast.emit('in-transit', payload)
+  socket.on('in-transit', payload => {
+    logger('in-transit', payload);
+    // console.log('transit', payload);
+
+    caps.to(payload.store).emit('in-tansit', payload);
+
   });
 
   socket.on('delivered', payload => {
-    logger('pick up', payload);
-    console.log('delivered', payload);
-    caps.broadcast.emit('delivered', payload)
+    logger('delivered', payload);
+    // console.log('delivered', payload);
+
+    caps.to(payload.store).emit('delivered', payload);
+
   });
 
 });
